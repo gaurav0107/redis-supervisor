@@ -1,0 +1,32 @@
+{
+  "REDIS": {
+    "version": "3.2.11",
+    "user": "redis"
+  },
+  "SENTINEL": {
+    "quorum": 2,
+    "down-after-milliseconds": 2000,
+    "parallel-syncs": 1,
+    "failover-timeout": 5000
+  },
+  "CLUSTER": [
+    {
+      "user": "user",
+      "host": "127.0.0.1",
+      "pass": "pass",
+      "port": 6380
+    },
+    {
+      "user": "user",
+      "host": "127.0.0.1",
+      "pass": "pass",
+      "port": 6381
+    },
+    {
+      "user": "user",
+      "host": "127.0.0.1",
+      "pass": "pass",
+      "port": 6382
+    }
+  ]
+}
