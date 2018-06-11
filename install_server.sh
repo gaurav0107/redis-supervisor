@@ -206,6 +206,7 @@ s#^port .\+#port ${REDIS_PORT}#; \
 s#^logfile .\+#logfile ${REDIS_LOG_FILE}#; \
 s#^dir .\+#dir ${REDIS_DATA_DIR}#; \
 s#^pidfile .\+#pidfile ${REDIS_PIDFILE}#; \
+s/protected-mode yes/protected-mode no/g; \
 s#^daemonize no#daemonize yes#;
 EOF
 
