@@ -4,6 +4,7 @@
     "user": "redis"
   },
   "SENTINEL": {
+    "name": "knowlus-redis",
     "quorum": 2,
     "down-after-milliseconds": 2000,
     "parallel-syncs": 1,

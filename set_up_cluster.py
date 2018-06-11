@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import json
 import optparse
 import os
@@ -138,26 +140,26 @@ def setUpCluster(config_file):
         setUpConfiguration(host_conf, config["REDIS"])
     #Configure Master
     print "Setting up Master: " + master["host"] + "  " + str(master["port"])
-    stdin, stdout, stderr = master["ssh_con"].exec_command('sudo /tmp/install_server.sh -u %s -p %s -sp %s -v %s -d %s -t %s -q %s \n' %(config["REDIS"]["user"], master["port"], master["sentinel_port"], config["REDIS"]["version"], config["SENTINEL"]["down-after-milliseconds"] ,config["SENTINEL"]["failover-timeout"], config["SENTINEL"]["quorum"]))
+    stdin, stdout, stderr = master["ssh_con"].exec_command('sudo /tmp/install_server.sh -n %s -u %s -p %s -sp %s -v %s -d %s -t %s -q %s \n' %(config["SENTINEL"]["name"], config["REDIS"]["user"], master["port"], master["sentinel_port"], config["REDIS"]["version"], config["SENTINEL"]["down-after-milliseconds"] ,config["SENTINEL"]["failover-timeout"], config["SENTINEL"]["quorum"]))
     
     print (stdout.read(), stderr.read())
     
     #Configure Slave
     for slave in slave_list:
         print "Setting up Slave" +  slave["host"] + "  " + str(slave["port"])
-        stdin, stdout, stderr = slave["ssh_con"].exec_command('sudo /tmp/install_server.sh -u %s -p %s -sp %s -v %s -d %s -t %s -q %s -m %s -mp %s\n' %(config["REDIS"]["user"], slave["port"],  slave["sentinel_port"], config["REDIS"]["version"], config["SENTINEL"]["down-after-milliseconds"], config["SENTINEL"]["failover-timeout"], config["SENTINEL"]["quorum"], master["host"], master["port"]))
+        stdin, stdout, stderr = slave["ssh_con"].exec_command('sudo /tmp/install_server.sh -n %s -u %s -p %s -sp %s -v %s -d %s -t %s -q %s -m %s -mp %s\n' %(config["SENTINEL"]["name"], config["REDIS"]["user"], slave["port"],  slave["sentinel_port"], config["REDIS"]["version"], config["SENTINEL"]["down-after-milliseconds"], config["SENTINEL"]["failover-timeout"], config["SENTINEL"]["quorum"], master["host"], master["port"]))
         print (stdout.read(), stderr.read())
 
     #Starting Master
-    stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_'+ str(master["port"]) + ' restart \n')
+    stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_'+ str(master["port"]) + ' start \n')
     print (stdout.read(), stderr.read())
-    stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_sentinel_'+ str(master["sentinel_port"]) + ' restart \n')
+    stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_sentinel_'+ str(master["sentinel_port"]) + ' start \n')
     print (stdout.read(), stderr.read())
 
     for slave in slave_list:
-        stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_'+ str(slave["port"]) + ' restart \n')
+        stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_'+ str(slave["port"]) + ' start \n')
         print (stdout.read(), stderr.read())
-        stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_sentinel_'+ str(slave["sentinel_port"]) + ' restart \n')
+        stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_sentinel_'+ str(slave["sentinel_port"]) + ' start \n')
         print (stdout.read(), stderr.read())
 
 
