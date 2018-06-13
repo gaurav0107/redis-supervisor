@@ -32,7 +32,7 @@ def validateConfig(config):
             print "Invalid port in Config File"
             os._exit(2)
         if "sentinel_port" not in host_conf:
-            host_conf["sentinel_port"] = host_conf["port"] + 20000
+            host_conf["sentinel_port"] = host_conf["port"] + 10000
         if "log_file" not in host_conf:
             host_conf["log_file"] = "redis_" + str(host_conf["port"]) + ".log"
         if "sentinel_log_file" not in host_conf:
@@ -79,6 +79,7 @@ def downloadRedis(con, version):
     else:
         return False
 
+
 def installRedis(host_conf, redis):
     filename= '/tmp/redis-'+redis["version"]+'.tar.gz'
     try:
@@ -106,6 +107,7 @@ def checkExistingVersion(config):
     for host_conf in config["CLUSTER"]:
         stdin, stdout, stderr = host_conf["ssh_con"].exec_command('redis-server -v\n')
         out = stdout.read()
+        k = installRedis(host_conf, config["REDIS"])
         if "v="+config["REDIS"]["version"] in out:
             print "Redis Version already exists"
             status.append(True)
@@ -113,7 +115,7 @@ def checkExistingVersion(config):
             print "Some Other version present on %s, Please Uninstall"  %(host_conf["host"])
             status.append(False)
         else:
-            status.append(installRedis(host_conf, config["REDIS"]))
+            status.append(k)
     if False in status:
         return False
     return True
@@ -123,6 +125,7 @@ def setUpConfiguration(host_conf, redis):
     os.system("rsync -avrz install_server.sh %s@%s:/tmp/install_server.sh  > /dev/null 2>&1" %(host_conf["user"], host_conf["host"]))
     os.system("rsync -avrz redis_init_script.tpl %s@%s:/tmp/redis_init_script.tpl  > /dev/null 2>&1" %(host_conf["user"], host_conf["host"]))
     os.system("rsync -avrz redis_sentinel_script.tpl %s@%s:/tmp/redis_sentinel_script.tpl  > /dev/null 2>&1" %(host_conf["user"], host_conf["host"]))
+    os.system("rsync -avrz redis_supervisor_conf.tpl %s@%s:/tmp/redis_supervisor_conf.tpl  > /dev/null 2>&1" %(host_conf["user"], host_conf["host"]))
 
 def choseRandomMaster(config_file):
     import random
@@ -140,26 +143,26 @@ def setUpCluster(config_file):
         setUpConfiguration(host_conf, config["REDIS"])
     #Configure Master
     print "Setting up Master: " + master["host"] + "  " + str(master["port"])
-    stdin, stdout, stderr = master["ssh_con"].exec_command('sudo /tmp/install_server.sh -n %s -u %s -p %s -sp %s -v %s -d %s -t %s -q %s \n' %(config["SENTINEL"]["name"], config["REDIS"]["user"], master["port"], master["sentinel_port"], config["REDIS"]["version"], config["SENTINEL"]["down-after-milliseconds"] ,config["SENTINEL"]["failover-timeout"], config["SENTINEL"]["quorum"]))
+    stdin, stdout, stderr = master["ssh_con"].exec_command('sudo /tmp/install_server.sh -n %s -u %s --host %s -p %s -sp %s -v %s -d %s -t %s -q %s -m %s -mp %s\n' %(config["SENTINEL"]["name"], config["REDIS"]["user"], master["host"], str(master["port"]), str(master["sentinel_port"]), config["REDIS"]["version"], str(config["SENTINEL"]["down-after-milliseconds"]), str(config["SENTINEL"]["failover-timeout"]), str(config["SENTINEL"]["quorum"]), master["host"], str(master["port"])))
     
     print (stdout.read(), stderr.read())
     
     #Configure Slave
     for slave in slave_list:
         print "Setting up Slave" +  slave["host"] + "  " + str(slave["port"])
-        stdin, stdout, stderr = slave["ssh_con"].exec_command('sudo /tmp/install_server.sh -n %s -u %s -p %s -sp %s -v %s -d %s -t %s -q %s -m %s -mp %s\n' %(config["SENTINEL"]["name"], config["REDIS"]["user"], slave["port"],  slave["sentinel_port"], config["REDIS"]["version"], config["SENTINEL"]["down-after-milliseconds"], config["SENTINEL"]["failover-timeout"], config["SENTINEL"]["quorum"], master["host"], master["port"]))
+        stdin, stdout, stderr = slave["ssh_con"].exec_command('sudo /tmp/install_server.sh -n %s -u %s --host %s -p %s -sp %s -v %s -d %s -t %s -q %s -m %s -mp %s\n' %(config["SENTINEL"]["name"], config["REDIS"]["user"], slave["host"], slave["port"],  slave["sentinel_port"], config["REDIS"]["version"], config["SENTINEL"]["down-after-milliseconds"], config["SENTINEL"]["failover-timeout"], config["SENTINEL"]["quorum"], master["host"], master["port"]))
         print (stdout.read(), stderr.read())
 
     #Starting Master
-    stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_'+ str(master["port"]) + ' start \n')
+    stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_'+ str(master["port"]) + ' restart \n')
     print (stdout.read(), stderr.read())
-    stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_sentinel_'+ str(master["sentinel_port"]) + ' start \n')
+    stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_sentinel_'+ str(master["sentinel_port"]) + ' restart \n')
     print (stdout.read(), stderr.read())
 
     for slave in slave_list:
-        stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_'+ str(slave["port"]) + ' start \n')
+        stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_'+ str(slave["port"]) + ' restart \n')
         print (stdout.read(), stderr.read())
-        stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_sentinel_'+ str(slave["sentinel_port"]) + ' start \n')
+        stdin, stdout, stderr = master["ssh_con"].exec_command('sudo service redis_sentinel_'+ str(slave["sentinel_port"]) + ' restart \n')
         print (stdout.read(), stderr.read())
 
 

@@ -1,0 +1,6 @@
+command=/usr/local/bin/redis-server /etc/redis.conf
+autostart=true
+autorestart=true
+user=root
+stdout_logfile=/var/log/redis/stdout.log
+stderr_logfile=/var/log/redis/stderr.log
