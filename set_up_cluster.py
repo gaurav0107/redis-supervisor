@@ -84,15 +84,13 @@ def installRedis(host_conf, redis):
     filename= '/tmp/redis-'+redis["version"]+'.tar.gz'
     try:
         sftp = host_conf["ssh_con"].open_sftp()
-        print(sftp.stat(filename))
-        print "File Already Exists !!!"
     except IOError:
         print "File Not Exists Downloading ...!!!"
         if not downloadRedis(host_conf["ssh_con"], redis["version"]):
             return False
         print "File Download Successfull !!!"
-    print "Extraction file:" + filename + 'tar xzf ' + filename+ ' --directory /tmp\n'
-    stdin, stdout, stderr = host_conf["ssh_con"].exec_command('tar xzf ' + filename+ ' --directory /tmp\n')
+    print "Extraction file:" + filename + 'tar xzf ' + filename+ ' --directory /tmp > /dev/null 2>&1\n'
+    stdin, stdout, stderr = host_conf["ssh_con"].exec_command('tar xzf ' + filename+ ' --directory /tmp > /dev/null 2>&1\n')
     if stderr.read():
         print stderr.read()
         return False
@@ -102,20 +100,18 @@ def installRedis(host_conf, redis):
     return True
 
 
-def checkExistingVersion(config):
+def checkAndInstallRedis(config):
     status = list()
     for host_conf in config["CLUSTER"]:
-        stdin, stdout, stderr = host_conf["ssh_con"].exec_command('redis-server -v\n')
-        out = stdout.read()
         k = installRedis(host_conf, config["REDIS"])
-        if "v="+config["REDIS"]["version"] in out:
-            print "Redis Version already exists"
-            status.append(True)
-        elif "v=" in out:
-            print "Some Other version present on %s, Please Uninstall"  %(host_conf["host"])
-            status.append(False)
-        else:
-            status.append(k)
+        if k:
+            stdin, stdout, stderr = host_conf["ssh_con"].exec_command('redis-server -v\n')
+            out = stdout.read()
+            if "v="+config["REDIS"]["version"] in out:
+                print "Redis Version already exists"
+                status.append(True)
+            else:
+                status.append(False)
     if False in status:
         return False
     return True
@@ -134,13 +130,16 @@ def choseRandomMaster(config_file):
 
 def setUpCluster(config_file):
     config = updateSSHCon(validateConfig(getConfig(config_file)))
-    if not checkExistingVersion(config):
+    if not checkAndInstallRedis(config):
         os._exit(2)
+        
+    for host_conf in config["CLUSTER"]:
+        setUpConfiguration(host_conf, config["REDIS"])
+    
     ###setup cluster
     master = choseRandomMaster(config)
     slave_list = [x for x in config["CLUSTER"] if x != master]
-    for host_conf in config["CLUSTER"]:
-        setUpConfiguration(host_conf, config["REDIS"])
+
     #Configure Master
     print "Setting up Master: " + master["host"] + "  " + str(master["port"])
     stdin, stdout, stderr = master["ssh_con"].exec_command('sudo /tmp/install_server.sh -n %s -u %s --host %s -p %s -sp %s -v %s -d %s -t %s -q %s -m %s -mp %s\n' %(config["SENTINEL"]["name"], config["REDIS"]["user"], master["host"], str(master["port"]), str(master["sentinel_port"]), config["REDIS"]["version"], str(config["SENTINEL"]["down-after-milliseconds"]), str(config["SENTINEL"]["failover-timeout"]), str(config["SENTINEL"]["quorum"]), master["host"], str(master["port"])))
