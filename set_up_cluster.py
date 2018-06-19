@@ -103,7 +103,7 @@ def installRedis(host_conf, redis):
     if stderr.read():
         print stderr.read()
         return False
-    stdin, stdout, stderr = host_conf["ssh_con"].exec_command('sudo make intall --directory=/tmp/redis-'+redis["version"]  +'\n')
+    stdin, stdout, stderr = host_conf["ssh_con"].exec_command('sudo make install --directory=/tmp/redis-'+redis["version"]  +'\n')
     if stderr.read():
         print stderr.read()
         return False

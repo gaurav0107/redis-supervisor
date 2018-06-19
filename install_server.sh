@@ -194,7 +194,8 @@ fi
 sudo mkdir -p `dirname "$REDIS_CONFIG_FILE"` || die "Could not create redis config directory"
 sudo mkdir -p `dirname "$REDIS_LOG_FILE"` || die "Could not create redis log dir"
 sudo mkdir -p "$REDIS_DATA_DIR" || die "Could not create redis data directory"
-sudo mkdir -p "$REDIS_RUN_DIR" || die "Could not create redis data directory"
+sudo mkdir -p "$REDIS_RUN_DIR" || die "Could not create redis run directory"
+sudo mkdir -p "$LOG_DIR" || die "Could not create redis log directory"
 
 #Installing Dependencies
 echo "Installing Dependencies..."
@@ -206,6 +207,7 @@ sudo apt-get install tcl -y > /dev/null 2>&1
 sudo chown -R ${REDIS_USER}:${REDIS_USER} ${CONF_DIR}
 sudo chown -R ${REDIS_USER}:${REDIS_USER} ${REDIS_DATA_DIR}
 sudo chown -R ${REDIS_USER}:${REDIS_USER} ${REDIS_RUN_DIR}
+sudo chown -R ${REDIS_USER}:${REDIS_USER} ${LOG_DIR}
 
 
 echo $DEFAULT_REDIS_CONFIG
