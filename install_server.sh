@@ -225,6 +225,7 @@ s#^logfile .\+#logfile ${REDIS_LOG_FILE}#; \
 s#^dir .\+#dir ${REDIS_DATA_DIR}#; \
 s#^pidfile .\+#pidfile ${REDIS_PIDFILE}#; \
 s/bind 127.0.0.1/bind 0.0.0.0/g; \
+s/protected-mode yes/protected-mode no/g; \
 s#^daemonize no#daemonize yes#;
 EOF
 
