@@ -84,6 +84,8 @@ def installRedis(host_conf, redis):
     filename= '/tmp/redis-'+redis["version"]+'.tar.gz'
     try:
         sftp = host_conf["ssh_con"].open_sftp()
+        print(sftp.stat(filename))
+        print "file exists"
     except IOError:
         print "File Not Exists Downloading ...!!!"
         if not downloadRedis(host_conf["ssh_con"], redis["version"]):
@@ -95,8 +97,15 @@ def installRedis(host_conf, redis):
         print stderr.read()
         return False
     print "File Extraction Successfull !!!"
+    print 'sudo make --directory=/tmp/redis-'+redis["version"]+' \n'
     stdin, stdout, stderr = host_conf["ssh_con"].exec_command('sudo make --directory=/tmp/redis-'+redis["version"]+' \n')
+    if stderr.read():
+        print stderr.read()
+        return False
     stdin, stdout, stderr = host_conf["ssh_con"].exec_command('sudo make intall --directory=/tmp/redis-'+redis["version"]  +'\n')
+    if stderr.read():
+        print stderr.read()
+        return False
     return True
 
 

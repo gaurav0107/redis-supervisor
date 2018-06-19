@@ -194,6 +194,7 @@ fi
 sudo mkdir -p `dirname "$REDIS_CONFIG_FILE"` || die "Could not create redis config directory"
 sudo mkdir -p `dirname "$REDIS_LOG_FILE"` || die "Could not create redis log dir"
 sudo mkdir -p "$REDIS_DATA_DIR" || die "Could not create redis data directory"
+sudo mkdir -p "$REDIS_RUN_DIR" || die "Could not create redis data directory"
 
 #Installing Dependencies
 echo "Installing Dependencies..."
@@ -204,6 +205,7 @@ sudo apt-get install tcl -y > /dev/null 2>&1
 #Adding Permissions to user
 sudo chown -R ${REDIS_USER}:${REDIS_USER} ${CONF_DIR}
 sudo chown -R ${REDIS_USER}:${REDIS_USER} ${REDIS_DATA_DIR}
+sudo chown -R ${REDIS_USER}:${REDIS_USER} ${REDIS_RUN_DIR}
 
 
 echo $DEFAULT_REDIS_CONFIG
@@ -221,7 +223,6 @@ s#^logfile .\+#logfile ${REDIS_LOG_FILE}#; \
 s#^dir .\+#dir ${REDIS_DATA_DIR}#; \
 s#^pidfile .\+#pidfile ${REDIS_PIDFILE}#; \
 s/bind 127.0.0.1/bind 0.0.0.0/g; \
-s/protected-mode yes/protected-mode no/g; \
 s#^daemonize no#daemonize yes#;
 EOF
 
@@ -251,7 +252,6 @@ s/sentinel monitor mymaster 127.0.0.1 6379 2/sentinel monitor ${CLUSTER_NAME} ${
 s/sentinel down-after-milliseconds mymaster 30000/sentinel down-after-milliseconds ${CLUSTER_NAME} ${DOWN_AFTER}/g; \
 s/sentinel parallel-syncs mymaster 1/sentinel parallel-syncs ${CLUSTER_NAME} 1/g; \
 s/sentinel failover-timeout mymaster 180000/sentinel failover-timeout ${CLUSTER_NAME} ${FAILOVER_TIMEOUT}/g; \
-s/# protected-mode no/protected-mode no/g; \
 s#^daemonize no#daemonize yes#;
 EOF
 sed "$SED_EXPR" $DEFAULT_SENTINEL_CONFIG >> $SENTINEL_TMP_FILE
