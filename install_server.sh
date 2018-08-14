@@ -255,7 +255,8 @@ s/sentinel monitor mymaster 127.0.0.1 6379 2/sentinel monitor ${CLUSTER_NAME} ${
 s/sentinel down-after-milliseconds mymaster 30000/sentinel down-after-milliseconds ${CLUSTER_NAME} ${DOWN_AFTER}/g; \
 s/sentinel parallel-syncs mymaster 1/sentinel parallel-syncs ${CLUSTER_NAME} 1/g; \
 s/sentinel failover-timeout mymaster 180000/sentinel failover-timeout ${CLUSTER_NAME} ${FAILOVER_TIMEOUT}/g; \
-s#^daemonize no#daemonize yes#;
+s#^daemonize no#daemonize yes#; \
+s#^protected no#protected no#;
 EOF
 sed "$SED_EXPR" $DEFAULT_SENTINEL_CONFIG >> $SENTINEL_TMP_FILE
 echo "daemonize yes" >> $SENTINEL_TMP_FILE

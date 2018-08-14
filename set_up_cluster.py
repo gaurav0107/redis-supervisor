@@ -99,6 +99,7 @@ def installRedis(host_conf, redis):
     print "File Extraction Successfull !!!"
     print 'sudo make --directory=/tmp/redis-'+redis["version"]+' \n'
     stdin, stdout, stderr = host_conf["ssh_con"].exec_command('sudo pkill -9 -f redis \n')
+    stdin, stdout, stderr = host_conf["ssh_con"].exec_command('sudo make distclean --directory=/tmp/redis-'+redis["version"]+' \n')
     stdin, stdout, stderr = host_conf["ssh_con"].exec_command('sudo make --directory=/tmp/redis-'+redis["version"]+' \n')
     if stderr.read():
         print stderr.read()
