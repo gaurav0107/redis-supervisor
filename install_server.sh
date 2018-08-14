@@ -200,6 +200,8 @@ sudo mkdir -p "$LOG_DIR" || die "Could not create redis log directory"
 #Installing Dependencies
 echo "Installing Dependencies..."
 sudo apt-get install tcl -y > /dev/null 2>&1
+sudo apt-get install gcc -y > /dev/null 2>&1
+sudo apt-get install make -y > /dev/null 2>&1
 #sudo apt-get install supervisor -y > /dev/null 2>&1
 #sudo service supervisor restart
 
