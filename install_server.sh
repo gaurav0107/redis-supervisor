@@ -258,7 +258,7 @@ s/sentinel down-after-milliseconds mymaster 30000/sentinel down-after-millisecon
 s/sentinel parallel-syncs mymaster 1/sentinel parallel-syncs ${CLUSTER_NAME} 1/g; \
 s/sentinel failover-timeout mymaster 180000/sentinel failover-timeout ${CLUSTER_NAME} ${FAILOVER_TIMEOUT}/g; \
 s/# protected-mode no/protected-mode no/g; \
-s#^daemonize no#daemonize yes#; \
+s#^daemonize no#daemonize yes#;
 EOF
 sed "$SED_EXPR" $DEFAULT_SENTINEL_CONFIG >> $SENTINEL_TMP_FILE
 echo "daemonize yes" >> $SENTINEL_TMP_FILE
